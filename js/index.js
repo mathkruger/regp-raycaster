@@ -1,5 +1,5 @@
-const SCREEN_WIDTH = window.innerWidth - 20;
-const SCREEN_HEIGHT = window.innerHeight - 20;
+const SCREEN_WIDTH = 800;
+const SCREEN_HEIGHT = 480;
 
 const canvas = document.createElement("canvas");
 canvas.setAttribute("width", SCREEN_WIDTH);
@@ -18,8 +18,12 @@ const textures = {
 const CELL_SIZE = 64;
 const PLAYER_SIZE = 10;
 const COLORS = {
-  floor: "#c3c3c3",
-  ceiling: "grey",
+  floor: "brown",
+  ceiling: "lightblue",
+  wall: "blue",
+  wallDark: "darkblue",
+  smallWall: "green",
+  smallWallDark: "darkgreen",
   rays: "#ffa600",
 };
 const FOV = toRadians(60);
@@ -29,8 +33,8 @@ const map = [
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 1, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -178,22 +182,15 @@ function fixFishEye(distance, angle, playerAngle) {
 function renderScene(rays) {
   rays.forEach((ray, i) => {
     const distance = fixFishEye(ray.distance, ray.angle, player.angle);
-    const wallTimes = ray.wall === 1 ? 277 : 500;
-    const wallHeight = ((CELL_SIZE * (ray.wall === 1 ? 5 : 10)) / distance) * wallTimes;
+    const wallHeight = ((CELL_SIZE * 5) / distance) * (CELL_SIZE * 1.5);
 
-    // context.fillStyle = ray.vertical ? COLORS.wallDark : COLORS.wall;
-    // context.fillRect(i, SCREEN_HEIGHT / 2 - wallHeight / 2, 1, wallHeight);
+    if (ray.wall === 1) {
+      context.fillStyle = ray.vertical ? COLORS.wallDark : COLORS.wall;
+    } else if (ray.wall === 2) {
+      context.fillStyle = ray.vertical ? COLORS.smallWallDark : COLORS.smallWall;
+    }
 
-    const wallTexture = ray.vertical ? textures.wallDark : textures.wall;
-    context.drawImage(wallTexture,
-      32,
-      0,
-      1,
-      64,
-      i,
-      SCREEN_HEIGHT / 2 - wallHeight / 2,
-      1,
-      wallHeight)
+    context.fillRect(i, SCREEN_HEIGHT / 2 - wallHeight / 2, 1, wallHeight);
 
     context.fillStyle = COLORS.floor;
     context.fillRect(
@@ -202,14 +199,12 @@ function renderScene(rays) {
       1,
       SCREEN_HEIGHT / 2 - wallHeight / 2
     );
-    // context.drawImage(textures.floor, i,
-    //   SCREEN_HEIGHT / 2 + wallHeight / 2,
-    //   1,
-    //   SCREEN_HEIGHT / 2 - wallHeight / 2);
 
     context.fillStyle = COLORS.ceiling;
     context.fillRect(i, 0, 1, SCREEN_HEIGHT / 2 - wallHeight / 2);
-    // context.drawImage(textures.ceiling, i, 0, 1, SCREEN_HEIGHT / 2 - wallHeight / 2);
+
+    context.fillStyle = `rgba(0, 0, 0, ${(ray.distance / 200)})`;
+    context.fillRect(i, 0, 1, SCREEN_HEIGHT);
   });
 }
 
